@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Claims Support</title>
+  <link rel="preload" href="/static/fonts/atkinson-hyperlegible-next.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/static/styles.css">
+  <script src="/static/common.js" defer></script>
+  <script src="/static/app.js" defer></script>
+</head>
+<body class="chat-page">
+  <header class="topbar">
+    <div class="brand">
+      <span class="mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M7 3h7l4 4v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v4h4"/><path d="M9.5 14l2 2 3.5-4"/></svg>
+      </span>
+      <span class="brand__name">Claims Support</span>
+    </div>
+    <div class="topbar__actions">
+      <button type="button" class="button button--secondary" id="new-conversation">New conversation</button>
+      <label class="switch" title="Show the SOP console next to the chat.">
+        <input type="checkbox" id="console-toggle">
+        <span>SOP console</span>
+      </label>
+      <a class="link" href="/console" target="_blank" rel="noopener">Open console in a new tab</a>
+    </div>
+  </header>
+
+  <p class="banner" id="dev-banner" hidden>
+    No AI model key is set, so replies come from a stand-in that doesn't read your messages.
+    Add an API key in the SOP console.
+    <button type="button" class="link-button" id="open-console">Open the SOP console</button>
+  </p>
+
+  <main class="layout layout--chat" id="layout">
+    <section class="chat" aria-label="Conversation">
+      <ol class="progress" id="progress" aria-label="Your progress">
+        <li data-phase="VERIFY_ID"><span class="step-marker">1</span><span class="progress__label">Confirm it's you</span></li>
+        <li data-phase="RESOLVE_INTENT"><span class="step-marker">2</span><span class="progress__label">Find your claim</span></li>
+        <li data-phase="PROCESS_CASE"><span class="step-marker">3</span><span class="progress__label">Get answers</span></li>
+        <li data-phase="POST_PROCESS"><span class="step-marker">4</span><span class="progress__label">Wrap up</span></li>
+      </ol>
+      <ol class="messages" id="messages" aria-live="polite"></ol>
+      <p class="chat__error" id="error" role="alert" hidden></p>
+      <div class="quick" id="quick-replies" hidden></div>
+      <div class="chat__ended" id="ended" hidden>
+        <p id="ended-text"></p>
+        <button type="button" class="button" id="restart">Start a new conversation</button>
+      </div>
+      <form class="composer" id="composer">
+        <label class="visually-hidden" for="input">Message</label>
+        <textarea id="input" rows="1" maxlength="4000" placeholder="Write a message…"
+                  autocomplete="off"></textarea>
+        <button type="submit" class="button" id="send">Send</button>
+      </form>
+      <p class="composer__hint" id="composer-hint">Press Enter to send, Shift+Enter for a new line.</p>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SOP Console</title>
+  <link rel="preload" href="/static/fonts/atkinson-hyperlegible-next.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/static/styles.css">
+  <script src="/static/common.js" defer></script>
+  <script src="/static/console.js" defer></script>
+</head>
+<body class="console-page">
+  <header class="topbar">
+    <div class="brand">
+      <span class="mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M7 3h7l4 4v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v4h4"/><path d="M9.5 14l2 2 3.5-4"/></svg>
+      </span>
+      <span class="brand__name">SOP console</span>
+      <span class="brand__tag">Watching this browser's conversation</span>
+    </div>
+    <div class="topbar__status">
+      <span class="badge" id="date-badge">Date: –</span>
+      <span class="badge" id="model-badge">Model: –</span>
+    </div>
+    <button type="button" class="button button--secondary topbar__new" id="new-conversation"
+            title="Starts a new conversation with the demo settings below.">New conversation</button>
+  </header>
+
+  <p class="banner" id="dev-banner" hidden>
+    No AI model key is set, so replies come from a stand-in that doesn't read messages.
+    Add an API key under Model.
+  </p>
+  <p class="banner banner--info" id="no-session" hidden>
+    No active conversation in this browser. Open the chat page, or start one with
+    <strong>New conversation</strong>.
+  </p>
+  <p class="chat__error console__error" id="error" role="alert" hidden></p>
+
+  <main class="console">
+    <!-- The model first: which one replies, and a place to enter a key. -->
+    <section class="card model-card" id="model-card" aria-labelledby="model-title">
+      <div class="card__head">
+        <h2 id="model-title">Model</h2>
+        <span class="card__note">Which model replies in this browser, and whose key it uses.</span>
+      </div>
+      <p class="model__status" id="model-status">Checking the model…</p>
+      <form class="key-form" id="key-form">
+        <label class="key-field">Provider
+          <select id="key-provider"></select>
+        </label>
+        <label class="key-field">Model
+          <input id="key-model" type="text" list="key-models" autocomplete="off" spellcheck="false">
+          <datalist id="key-models"></datalist>
+        </label>
+        <label class="key-field key-field--wide">API key
+          <input id="api-key" type="password" autocomplete="off" spellcheck="false">
+        </label>
+        <div class="key-actions">
+          <button type="submit" class="button" id="key-save">Use this key</button>
+          <button type="button" class="button button--secondary" id="key-remove" hidden>Remove key</button>
+        </div>
+      </form>
+      <p class="key-error" id="key-error" role="alert" hidden></p>
+      <p class="muted key-note">
+        The key stays in this server's memory, for this browser only. It isn't shown again or
+        written to logs, and it's forgotten after 12 idle hours or when you remove it.
+      </p>
+    </section>
+
+    <!-- Settings for the next conversation, folded away; test cases choose the consent they need. -->
+    <details class="card demo-settings" id="demo-settings">
+      <summary>
+        <h2>Demo settings</h2>
+        <span class="card__note" id="settings-summary"></span>
+      </summary>
+      <form class="demo-settings__form" id="settings">
+        <p class="muted">These apply from the next conversation you start.</p>
+        <div class="setting">
+          <label for="date-mode">Today's date for the agent</label>
+          <select id="date-mode" aria-describedby="date-mode-hint">
+            <option value="demo">Demo date</option>
+            <option value="real">Real date</option>
+          </select>
+          <p class="setting__hint" id="date-mode-hint">
+            The demo date keeps the test claims consistent. The real date shows how expired appeal
+            deadlines are handled.
+          </p>
+        </div>
+        <div class="setting">
+          <label for="consent-scenario">Policyholder consent (representative calls)</label>
+          <select id="consent-scenario" aria-describedby="consent-scenario-hint">
+            <option value="default">Approves</option>
+            <option value="timeout">Times out</option>
+          </select>
+          <p class="setting__hint" id="consent-scenario-hint">
+            When someone calls on a policyholder's behalf, the simulated policyholder approves on
+            the second check, or never answers.
+          </p>
+        </div>
+        <div>
+          <button type="submit" class="button button--secondary">Start a new conversation with these settings</button>
+        </div>
+      </form>
+    </details>
+
+    <!-- Then test cases: complete conversations to play, each step with what to look for. -->
+    <section class="card cases" aria-labelledby="cases-title">
+      <div class="card__head">
+        <h2 id="cases-title">Test cases</h2>
+        <span class="card__note">Complete conversations to play in the chat, each step with what to look for.</span>
+      </div>
+      <div class="scenarios" id="scenarios"></div>
+      <div class="scenario" id="scenario" hidden>
+        <p class="scenario__description" id="scenario-description"></p>
+        <div class="scenario__controls">
+          <button type="button" class="button" id="scenario-play">Play the conversation</button>
+          <button type="button" class="button button--secondary" id="scenario-next">Send next step</button>
+          <button type="button" class="button button--secondary" id="scenario-restart">Start over</button>
+        </div>
+        <p class="scenario__status" id="scenario-status" role="status"></p>
+        <details class="scenario__script" open>
+          <summary>Steps and what to look for</summary>
+          <ol class="steps" id="scenario-steps"></ol>
+        </details>
+      </div>
+    </section>
+
+    <!-- Always in view: where the conversation is in the SOP, and which gates are open. -->
+    <section class="card status" aria-labelledby="status-title">
+      <div class="card__head">
+        <h2 id="status-title">Workflow</h2>
+        <span class="pill" id="session-status">–</span>
+        <span class="card__note" id="status-meta" hidden></span>
+        <p class="status__pending" id="turn-pending" hidden>The agent is replying…</p>
+      </div>
+      <ol class="phases" id="phases"></ol>
+      <p class="status__subflow" id="subflow" hidden></p>
+      <ul class="gates" id="gates"></ul>
+    </section>
+
+    <div class="console__body">
+      <div class="console__main">
+        <div class="tabs" role="tablist" aria-label="Console sections">
+          <button type="button" class="tab" role="tab" id="tab-turns" aria-controls="panel-turns" data-tab="turns">
+            Turns <span class="tab__count" id="count-turns"></span>
+          </button>
+          <button type="button" class="tab tab--aside" role="tab" id="tab-memory" aria-controls="panel-memory" data-tab="memory">
+            Memory
+          </button>
+          <button type="button" class="tab" role="tab" id="tab-outbox" aria-controls="panel-outbox" data-tab="outbox">
+            Outbox <span class="tab__count" id="count-outbox"></span>
+          </button>
+        </div>
+
+        <section class="card tabpanel" role="tabpanel" id="panel-turns" aria-labelledby="tab-turns">
+          <div class="card__head">
+            <h2>Turns</h2>
+            <span class="card__note">Newest first, each with the messages, reply plan and trace.</span>
+            <p class="card__actions">
+              Download
+              <a class="link" href="/api/session/export?format=markdown" download>Markdown</a>
+              <a class="link" href="/api/session/export?format=json" download>JSON</a>
+            </p>
+          </div>
+          <ol class="turns" id="turns"></ol>
+        </section>
+
+        <section class="card tabpanel" role="tabpanel" id="panel-outbox" aria-labelledby="tab-outbox" hidden>
+          <div class="card__head">
+            <h2>Demo outbox</h2>
+            <span class="card__note">Simulated: no real email is sent.</span>
+          </div>
+          <ol class="outbox" id="outbox"></ol>
+          <p class="empty" id="outbox-empty">No emails yet. A summary appears here once the caller accepts it.</p>
+        </section>
+      </div>
+
+      <!-- Beside the tabs on wide screens; a tab of its own when narrow. -->
+      <aside class="console__aside">
+        <section class="card tabpanel tabpanel--aside" role="tabpanel" id="panel-memory" aria-labelledby="tab-memory" hidden>
+          <div class="card__head">
+            <h2>Memory</h2>
+          </div>
+          <div class="memory">
+            <div class="memory__group memory__group--caller">
+              <h3>Caller told us</h3>
+              <dl class="facts" id="memory-caller"></dl>
+            </div>
+            <div class="memory__group memory__group--records">
+              <h3>From records</h3>
+              <dl class="facts" id="memory-records"></dl>
+            </div>
+          </div>
+        </section>
+      </aside>
+    </div>
+  </main>
+</body>
+</html>

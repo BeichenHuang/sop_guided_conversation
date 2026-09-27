@@ -1,0 +1,43 @@
+[project]
+name = "sop-guided-conversational-agent"
+version = "0.1.0"
+description = "SOP-guided conversational agent for insurance claims support"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "anthropic>=1.8.0",
+    "fastapi>=0.141.1",
+    "openai>=3.19.2",
+    "pydantic>=2.13.5",
+    "uvicorn>=0.54.0",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[dependency-groups]
+dev = [
+    "httpx2>=2.13.1",
+    "pytest>=9.1.1",
+    "ruff>=0.16.9",
+]
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+
+[tool.ruff.lint.per-file-ignores]
+# Prompts are prose; wrapping them mid-sentence would only make them harder to edit.
+"apps/insurance_claims/llm/prompts.py" = ["E501"]
+"evals/simulator.py" = ["E501"]
+"evals/judge.py" = ["E501"]
+
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = ["fastapi.Depends"]

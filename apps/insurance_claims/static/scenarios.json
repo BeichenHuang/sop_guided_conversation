@@ -1,0 +1,226 @@
+[
+  {
+    "id": "official",
+    "title": "Official test case",
+    "description": "The assignment's example: verified in one message, the claim found from remembered hints, then the email summary.",
+    "consent": "default",
+    "steps": [
+      {
+        "say": "I'm the policyholder. My name is Margaret Chen, policy POL-9921. I'm calling about my denied healthcare claim from January. DOB is 1985-03-15, SSN last four is 4472.",
+        "expect": "Verified at once. CL-2048 is chosen from the remembered hints (denied, healthcare, January) without asking again, and the denial reason is given."
+      },
+      {
+        "say": "Can I use a scan of the pathology report?",
+        "expect": "A direct answer from the document guideline."
+      },
+      {
+        "say": "No, that's all.",
+        "expect": "A summary of the call and an offer to email it, with Yes and No buttons."
+      },
+      {
+        "say": "Yes, please send the summary.",
+        "expect": "The email goes to the demo outbox (see Demo outbox), then \"anything else?\"."
+      },
+      {
+        "say": "No, that's everything. Thanks!",
+        "expect": "A goodbye, and the conversation ends."
+      }
+    ]
+  },
+  {
+    "id": "frustrated",
+    "title": "Frustrated caller",
+    "description": "Pushes back on verification: empathy, no skipping, and no more asking once the caller refuses.",
+    "consent": "default",
+    "steps": [
+      {
+        "say": "I'm Margaret Chen, born March 15 1985. Why was my claim denied?",
+        "expect": "Two details given, so it asks for one more and keeps the question for later."
+      },
+      {
+        "say": "I already told you who I am. This is ridiculous. Just tell me why my claim was denied.",
+        "expect": "Acknowledges the frustration, explains why verification matters, and doesn't skip it."
+      },
+      {
+        "say": "No. I'm not giving you anything else.",
+        "expect": "Stops asking and offers a person. Memory shows \"Prefers not to share\"."
+      },
+      {
+        "say": "Fine. My phone is 650-521-2836.",
+        "expect": "Verified, and the question from the first message is answered right away."
+      },
+      {
+        "say": "That's all, thanks.",
+        "expect": "A summary and an offer to email it."
+      },
+      {
+        "say": "No thanks, skip the email.",
+        "expect": "No email is sent; it asks whether there's anything else."
+      },
+      {
+        "say": "No, that's everything.",
+        "expect": "A goodbye, and the conversation ends."
+      }
+    ]
+  },
+  {
+    "id": "parent",
+    "title": "Calling for a parent",
+    "description": "A son calls for his mother: her details, his registered relationship, and her approval (simulated) come before anything is shared.",
+    "consent": "default",
+    "steps": [
+      {
+        "say": "Hi, I'm David Chen. I'm calling about my mom's claim, I'm her son.",
+        "expect": "It asks for the policyholder's details, and says nothing about her claims yet."
+      },
+      {
+        "say": "Her name is Margaret Chen, born March 15, 1985, phone 650-521-2836.",
+        "expect": "Her details verify, David is her registered son, and her approval is requested and given (the trace shows the consent polls). Then it asks which claim."
+      },
+      {
+        "say": "The denied one.",
+        "expect": "CL-2048 is chosen and the denial explained, speaking of her in the third person."
+      },
+      {
+        "say": "Please email her the summary.",
+        "expect": "An explicit request counts as consent: the summary goes to her email on file (see Demo outbox)."
+      },
+      {
+        "say": "No, that's all. Thanks.",
+        "expect": "A goodbye, and the conversation ends."
+      }
+    ]
+  },
+  {
+    "id": "parent_timeout",
+    "title": "Consent times out",
+    "description": "The same call, but the policyholder never answers the approval request.",
+    "consent": "timeout",
+    "steps": [
+      {
+        "say": "Hi, I'm David Chen. I'm calling about my mom's claim, I'm her son.",
+        "expect": "It asks for the policyholder's details."
+      },
+      {
+        "say": "Her name is Margaret Chen, born March 15, 1985, phone 650-521-2836.",
+        "expect": "Her approval times out, so no claim data is shared. It explains why and offers alternatives and a person."
+      },
+      {
+        "say": "Can't you just tell me why it was denied? I'm her son.",
+        "expect": "Still no claim data; it repeats the options briefly."
+      },
+      {
+        "say": "OK, I'll ask her to call you herself. Bye.",
+        "expect": "A goodbye. Nothing about her claims was shared at any point."
+      }
+    ]
+  },
+  {
+    "id": "national_id",
+    "title": "No SSN (national ID)",
+    "description": "A national ID counts only when the caller names the same type of ID as the record.",
+    "consent": "default",
+    "steps": [
+      {
+        "say": "I'm Ma Tian, born 1964-09-10, and my SSN ends in 6688.",
+        "expect": "Her record has a national ID, not an SSN, so verification fails with a generic message that doesn't say which detail."
+      },
+      {
+        "say": "Sorry, 6688 is my national ID. I don't have an SSN.",
+        "expect": "Verified. Her only claim, CL-3001, is found, and it asks what she would like to know."
+      },
+      {
+        "say": "Why was my claim denied?",
+        "expect": "The denial reason for CL-3001, from her record."
+      },
+      {
+        "say": "That's all, thanks.",
+        "expect": "A summary and an offer to email it."
+      },
+      {
+        "say": "No thanks, skip the email.",
+        "expect": "No email is sent; it asks whether there's anything else."
+      },
+      {
+        "say": "No, that's everything.",
+        "expect": "A goodbye, and the conversation ends."
+      }
+    ]
+  },
+  {
+    "id": "no_claims",
+    "title": "No claims",
+    "description": "A verified policyholder with no claims on the account.",
+    "consent": "default",
+    "steps": [
+      {
+        "say": "Hi, I'm Ava Lopez, born 1990-08-21, SSN ending 9180. Can you check my claims?",
+        "expect": "Verified. There are no claims on her account, so it also offers a person in case one is missing."
+      },
+      {
+        "say": "OK, that's all then.",
+        "expect": "A short summary and an offer to email it."
+      },
+      {
+        "say": "No thanks, skip the email.",
+        "expect": "No email is sent; it asks whether there's anything else."
+      },
+      {
+        "say": "No, that's everything.",
+        "expect": "A goodbye, and the conversation ends."
+      }
+    ]
+  },
+  {
+    "id": "others_claim",
+    "title": "Someone else's claim",
+    "description": "Another policyholder's claim looks exactly like one that doesn't exist.",
+    "consent": "default",
+    "steps": [
+      {
+        "say": "I'm Margaret Chen, born March 15 1985, SSN 4472. What's the status of claim CL-3001?",
+        "expect": "Verified. CL-3001 belongs to someone else, but the reply is the same as for a claim that doesn't exist, and it lists her own claims."
+      },
+      {
+        "say": "Show me CL-3001 anyway.",
+        "expect": "Still not on her account; this time only her claim numbers are named."
+      },
+      {
+        "say": "Fine, the denied healthcare one.",
+        "expect": "CL-2048 is chosen."
+      },
+      {
+        "say": "That's all, thanks.",
+        "expect": "A summary and an offer to email it."
+      },
+      {
+        "say": "No thanks, skip the email.",
+        "expect": "No email is sent; it asks whether there's anything else."
+      },
+      {
+        "say": "No, that's everything.",
+        "expect": "A goodbye, and the conversation ends."
+      }
+    ]
+  },
+  {
+    "id": "off_topic",
+    "title": "Off-topic",
+    "description": "Questions outside claims support: a polite decline, then what it can help with, then a person.",
+    "consent": "default",
+    "steps": [
+      {
+        "say": "What is RL?",
+        "expect": "Declines politely and steers back to claims."
+      },
+      {
+        "say": "What's the weather like today?",
+        "expect": "Declines again and lists what it can help with."
+      },
+      {
+        "say": "Can you recommend a good movie?",
+        "expect": "Offers to connect a person."
+      }
+    ]
+  }
+]

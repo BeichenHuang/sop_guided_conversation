@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.env
+
+# Kept on the developer's machine only: the task text and the Chinese working notes.
+instrcution.txt
+instrcution_zh.txt
+docs/DESIGN_AND_IMPLEMENTATION.md
+docs/DESIGN_REVIEW.md
+docs/PROGRESS.md
+docs/README_zh.md
+docs/WALKTHROUGHS.md

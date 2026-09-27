@@ -1,0 +1,19 @@
+# Render Blueprint for the public demo. In the Render dashboard: New > Blueprint, then pick this
+# repository. See README, "Deploying to Render".
+services:
+  - type: web
+    name: sop-claims-agent
+    runtime: docker
+    plan: free
+    branch: main
+    healthCheckPath: /healthz
+    envVars:
+      # Optional. Leave it empty and each visitor enters their own key (OpenAI or Claude) in the
+      # SOP console; set it (an OpenAI key) and visitors without a key use yours.
+      # Entered in the dashboard, never stored here.
+      - key: AI_API_KEY
+        sync: false
+      - key: PORT
+        value: "8000" # the port the container listens on
+      - key: COOKIE_SECURE
+        value: "true" # Render serves over HTTPS

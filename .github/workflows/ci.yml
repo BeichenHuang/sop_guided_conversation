@@ -1,0 +1,58 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/0.12.19/install.sh | sh
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - run: uv sync --frozen
+      - name: Lint
+        run: |
+          uv run ruff check apps tests evals
+          uv run ruff format --check apps tests evals
+      - run: uv run pytest
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v5
+      - name: Build the image
+        run: docker build -t sop-agent:ci .
+      - name: Smoke-test the container
+        run: |
+          docker run -d --name sop-agent -p 8000:8000 sop-agent:ci
+          # Docker accepts connections on the published port before the app is
+          # listening and resets them, so poll until the app itself answers.
+          for attempt in $(seq 1 30); do
+            if curl -fs -o /dev/null http://127.0.0.1:8000/healthz; then
+              break
+            fi
+            if [ "$(docker inspect -f '{{.State.Running}}' sop-agent)" != "true" ]; then
+              echo "The container exited during startup."
+              exit 1
+            fi
+            if [ "$attempt" -eq 30 ]; then
+              echo "The app did not answer within 30 seconds."
+              exit 1
+            fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:8000/healthz
+          echo
+          curl -fsS -c jar.txt -X POST http://127.0.0.1:8000/api/sessions \
+            -H 'content-type: application/json' -d '{}'
+          echo
+          curl -fsS -b jar.txt -X POST http://127.0.0.1:8000/api/session/messages \
+            -H 'content-type: application/json' -d '{"message": "hello"}'
+      - name: Container logs
+        if: always()
+        run: docker logs sop-agent || true
