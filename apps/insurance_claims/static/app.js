@@ -34,9 +34,15 @@ const els = {
   consoleToggle: $("console-toggle"),
   banner: $("dev-banner"),
   openConsole: $("open-console"),
+  noKey: $("no-key"),
+  addKey: $("add-key"),
 };
 
 let pending = false;
+// Whether a real model replies. Until one does, the message box gives way to a note; if the
+// check itself fails, nothing is blocked.
+let modelReady = true;
+let lastView = null;
 // A message the console sent that is still waiting for its reply. It is shown again whenever the
 // conversation is re-rendered, so a reload that finishes late can't wipe it out.
 let remoteText = null;
@@ -57,7 +63,7 @@ const channel = openChannel((message) => {
     setPending(false);
     loadSession().catch((error) => showError(error.message));
   } else if (message.type === "model_changed") {
-    checkModel(els.banner);
+    checkModel(els.banner).then(applyModel);
   } else if (message.type === "session_started") {
     clearError();
     remoteText = null;
@@ -172,14 +178,28 @@ function renderProgress(phase, finished) {
   });
 }
 
+function applyModel(model) {
+  modelReady = !model || model.real_model;
+  renderComposer();
+}
+
 function renderSession(view) {
+  lastView = view;
   renderProgress(view.phase, view.status === "ended");
-  const closed = CLOSED[view.status];
+  renderComposer();
+}
+
+// The message box, or what stands in its place: the end of the conversation, or the missing key.
+function renderComposer() {
+  const view = lastView;
+  const closed = view ? CLOSED[view.status] : undefined;
   els.ended.hidden = !closed;
   els.endedText.textContent = closed || "";
-  els.composer.hidden = Boolean(closed);
-  els.hint.hidden = Boolean(closed);
-  const replies = (view.status === "active" && QUICK_REPLIES[view.awaiting]) || [];
+  els.noKey.hidden = Boolean(closed) || modelReady;
+  els.composer.hidden = Boolean(closed) || !modelReady;
+  els.hint.hidden = els.composer.hidden;
+  const answerable = view && view.status === "active" && modelReady;
+  const replies = (answerable && QUICK_REPLIES[view.awaiting]) || [];
   els.quick.replaceChildren(
     ...replies.map((text) => {
       const button = node("button", text, "chip");
@@ -231,6 +251,7 @@ async function startConversation() {
 }
 
 async function sendMessage(text) {
+  if (!modelReady) return;
   clearError();
   const bubble = appendMessage("user", text);
   setPending(true);
@@ -313,14 +334,19 @@ els.consoleToggle.addEventListener("change", () => {
   setConsole(els.consoleToggle.checked);
 });
 
-els.openConsole.addEventListener("click", () => {
+function showConsole() {
   writeStored(CONSOLE_KEY, true);
   setConsole(true);
-});
+  // An open console, beside the chat or in another tab, brings its key field into view.
+  channel.post({ type: "enter_key" });
+}
+
+els.openConsole.addEventListener("click", showConsole);
+els.addKey.addEventListener("click", showConsole);
 
 async function init() {
   setConsole(readStored(CONSOLE_KEY, true));
-  checkModel(els.banner);
+  checkModel(els.banner).then(applyModel);
   try {
     await loadSession();
   } catch (error) {

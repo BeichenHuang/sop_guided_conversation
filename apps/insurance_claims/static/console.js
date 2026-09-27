@@ -87,6 +87,9 @@ let lastSnapshot = "";
 let latestTurn = null;
 let settingsChosen = false;
 let hasOwnKey = false;
+// Test cases need a real model; if the check itself fails, nothing is blocked.
+let modelReady = true;
+const NO_KEY_NOTE = "Add an OpenAI or Claude key under Model to play test cases.";
 let providers = [];
 
 // The scenario player: complete conversations from scenarios.json, sent step by step.
@@ -102,7 +105,10 @@ const player = {
 };
 
 const channel = openChannel((message) => {
-  if (message.type === "turn_started") {
+  if (message.type === "enter_key") {
+    els.modelCard.scrollIntoView({ block: "start" });
+    els.apiKey.focus({ preventScroll: true });
+  } else if (message.type === "turn_started") {
     els.turnPending.hidden = false;
     if (player.filled !== null) {
       player.sent = player.filled + 1;
@@ -274,12 +280,14 @@ function renderModel(model) {
   els.modelStatus.textContent = {
     yours: `Using your ${model.provider_label} key ${model.key_hint} with ${model.model}.`,
     server: `Using the server's ${model.provider_label} key with ${model.model}. Enter your own key to use it instead.`,
-    none: "No key yet, so replies come from a stand-in that doesn't read messages. Choose a provider and enter its API key.",
+    none: "No key yet. Choose OpenAI or Anthropic Claude and enter an API key; the chat and the test cases start once it's accepted.",
   }[model.source];
   hasOwnKey = model.source === "yours";
+  modelReady = model.real_model;
+  renderScenario();
   els.keyRemove.hidden = !hasOwnKey;
   labelKeyForm();
-  els.modelBadge.textContent = model.real_model ? `Model: ${model.model}` : "Model: stand-in (no key)";
+  els.modelBadge.textContent = model.real_model ? `Model: ${model.model}` : "Model: no key yet";
   els.modelBadge.classList.toggle("badge--warn", !model.real_model);
   els.banner.hidden = model.real_model;
   els.modelCard.classList.toggle("model-card--warn", !model.real_model);
@@ -467,7 +475,7 @@ function renderScenario() {
       item.append(node("p", step.say, "step__say"), node("p", step.expect, "step__expect"));
       const edit = node("button", "Edit in chat", "link-button step__edit");
       edit.type = "button";
-      edit.disabled = player.busy;
+      edit.disabled = player.busy || !modelReady;
       edit.addEventListener("click", () => {
         player.filled = index;
         channel.post({ type: "fill", text: step.say });
@@ -482,9 +490,11 @@ function renderScenario() {
   if (next && player.busy) els.scenarioSteps.scrollTop = next.offsetTop - 8;
   const done = player.sent >= scenario.steps.length;
   els.scenarioPlay.textContent = player.playing ? "Stop" : "Play the conversation";
-  els.scenarioPlay.disabled = player.busy && !player.playing;
-  els.scenarioNext.disabled = player.busy || done;
-  els.scenarioRestart.disabled = player.busy;
+  els.scenarioPlay.disabled = player.playing ? false : player.busy || !modelReady;
+  els.scenarioNext.disabled = player.busy || done || !modelReady;
+  els.scenarioRestart.disabled = player.busy || !modelReady;
+  if (!modelReady && !player.busy) setScenarioStatus(NO_KEY_NOTE);
+  else if (els.scenarioStatus.textContent === NO_KEY_NOTE) setScenarioStatus("");
 }
 
 function setScenarioStatus(text) {

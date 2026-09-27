@@ -10,7 +10,9 @@ Both pages show the conversation in this browser.
 - **The chat** (`/`) is what a caller sees: a progress bar in the caller's words (*Confirm
   it's you*, *Find your claim*, *Get answers*, *Wrap up*), the messages, *Yes / No* buttons for
   the email summary, and **New conversation**. The **SOP console** switch shows the console
-  beside the chat; *Open console in a new tab* shows it on its own.
+  beside the chat; *Open console in a new tab* shows it on its own. Until a model key is set,
+  the message box gives way to a note that points to the console's key field, and the test
+  cases wait too.
 - **The SOP console** (`/console`) supervises the workflow and holds the demo controls:
   - **Model**: which model replies and whose key it uses; enter a key here. Marked in amber
     while no real model replies.
@@ -38,7 +40,7 @@ sent to the browser or written to logs.
 | Variable | Default | Meaning |
 | --- | --- | --- |
 | `AI_API_KEY` | – | The model key: OpenAI unless `AI_PROVIDER` says otherwise. Optional, since a key can be entered in the page. |
-| `AI_PROVIDER` | `openai` if a key is set, else `fake` | `openai` or `anthropic`, or `fake` for the stand-in. |
+| `AI_PROVIDER` | `openai` if a key is set, else `fake` | `openai` or `anthropic`. `fake` is a stand-in for tests that doesn't read messages; the chat stays closed while it is the only model. |
 | `AI_MODEL` | the provider's default | Model for both steps. With OpenAI, `gpt-6-sol` is a stronger, pricier option. |
 | `AI_REASONING_EFFORT` | `low` | `none`, `low`, `medium` or `high`. Leave empty for models without reasoning. |
 | `AI_BASE_URL` | – | Optional OpenAI-compatible endpoint for `AI_PROVIDER=openai`. |

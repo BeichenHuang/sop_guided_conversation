@@ -56,8 +56,8 @@ docker run --rm -p 8000:8000 --env-file .env sop-agent
 ```
 
 Then open <http://localhost:8000>. Instead of `AI_API_KEY`, a key can be entered in the
-console, as in the live demo. Without any key the app still starts, on a stand-in that doesn't
-read messages, and says so.
+console, as in the live demo. Without a key the app starts, and the chat waits until one is
+entered.
 
 | Provider | Default model | Also suggested in the console | Evaluated |
 | --- | --- | --- | --- |

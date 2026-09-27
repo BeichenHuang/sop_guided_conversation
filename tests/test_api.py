@@ -68,6 +68,14 @@ def test_the_model_field_suggests_models_but_takes_any_name(client):
     assert '<datalist id="key-models"></datalist>' in html
 
 
+def test_without_a_model_the_chat_page_offers_a_key_instead_of_a_message_box(client):
+    html = client.get("/").text
+    notice = html[html.index('id="no-key"') :]
+    notice = notice[: notice.index("</div>")]
+    assert "needs an AI model key" in notice and 'id="add-key"' in notice
+    assert "stand-in" not in html
+
+
 def test_console_folds_the_demo_settings_and_has_no_session_tab(client):
     html = client.get("/console").text
     settings = html[html.index('id="demo-settings"') : html.index("</details>")]
